@@ -1,1 +1,207 @@
-teleport soon
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COLDCARD Key Teleport</title>
+  <style>
+    :root {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      line-height: 1.5;
+
+      --col-red: #e00000;
+      --col-dark-red: #991b1b;
+      --col-light-gray: #f8f9fa;
+      --col-white: #fbfbfb;
+
+      --spacing-1: 0.25rem;
+      --spacing-2: 0.5rem;
+      --spacing-3: 0.75rem;
+      --spacing-4: 1rem;
+      --spacing-5: 1.25rem;
+      --spacing-6: 1.5rem;
+      --spacing-7: 1.75rem;
+      --spacing-8: 2rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--col-light-gray);
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    a:not(.btn) {
+      color: var(--col-red);
+    }
+
+    a:not(.btn):hover {
+      text-decoration: underline;
+    }
+
+
+    code {
+      background: rgba(0, 0, 0, 0.05);
+      padding: var(--spacing-1) var(--spacing-2);
+      border-radius: var(--spacing-1);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 600;
+    }
+
+    .btn {
+      background: var(--col-red);
+      color: var(--col-white);
+      border: none;
+      padding: var(--spacing-2) var(--spacing-4);
+      border-radius: var(--spacing-2);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: var(--transition-base);
+    }
+
+    .btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .container {
+      padding-top: max(var(--spacing-4), 6dvh);
+      padding-bottom: var(--spacing-4);
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-6);
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: var(--spacing-2);
+    }
+
+    .header img {
+      height: var(--spacing-6);
+    }
+
+    .header h1 {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 2rem;
+      color: var(--col-red);
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .card {
+      background: var(--col-white);
+      border-radius: var(--spacing-2);
+      padding: var(--spacing-4);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-inline: var(--spacing-2);
+      /* min-width: 20rem; */
+    }
+
+    .qr-code {
+      width: 100%;
+    }
+
+    .qr-code img {
+      display: block;
+      max-width: min(100dvh, 100dvw, 100%);
+      max-height: min(100dvh, 100dvw);
+      margin-inline: auto;
+    }
+
+    .error {
+      font-size: 0.875rem;
+      color: var(--col-dark-red);
+    }
+
+    .error h2 {
+      margin-top: 0;
+      margin-bottom: var(--spacing-4);
+      font-size: 1.25rem;
+    }
+
+    .info {
+      text-align: center;
+    }
+
+    .spinner {
+      width: min(12rem, 50dvw, 50dvh);
+      height: min(12rem, 50dvw, 50dvh);
+      border: var(--spacing-3) solid #f3f3f3;
+      border-top: var(--spacing-3) solid var(--col-red);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .qr-action-buttons {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-3);
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* utilities */
+    .hidden {
+      display: none;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="/img/coldcard-logo.svg" alt="COLDCARD logo">
+      <h1>Key Teleport</h>
+    </div>
+
+    <div class="card">
+      <div class="spinner"></div>
+
+
+      <div class="info hidden">
+        <p>This website powers the Key Teleport feature on COLDCARD devices.</p>
+        <p style="font-weight: bold; font-size: 1.25rem;"><a class="btn" href="#">Learn more</a></p>
+      </div>
+
+      <div class="qr-code hidden"></div>
+
+      <div class="error hidden">
+        <h2>Invalid data in URL</h2>
+        <p>The part after the <code>#</code> must be valid BBQr-encoded data.</p>
+        <p>Example: <code>B$2S0100&hellip;</code></p>
+      </div>
+    </div>
+
+    <div class="qr-action-buttons hidden">
+      <button class="btn" data-action="copy-url">Copy this URL</button>
+      <button class="btn" data-action="download-qr">Download QR code</button>
+    </div>
+
+  </div>
+
+  <script src="/js/bbqr.iife.js" integrity="sha384-1XIKW2u135wyLlqhJbaKUK0p0NGr9A+AL2CKIXRc4O9cJr+FBYM64PZ0faHQog2v"></script>
+  <script src="/js/main.js" integrity="sha384-QK1KCcUefE9dquNqrqe+WULL9ayBZ+5X7XCkTMiLiFzJr28zNdRgShDyT0d3PMPl"></script>
+</body>
+
+</html>

@@ -1,1 +1,323 @@
-teleport soon
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COLDCARD Key Teleport</title>
+  <style>
+    :root {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      line-height: 1.5;
+
+      --col-red: #e00000;
+      --col-dark-red: #991b1b;
+      --col-light-gray: #f8f9fa;
+      --col-white: #fbfbfb;
+
+      --spacing-1: 0.25rem;
+      --spacing-2: 0.5rem;
+      --spacing-3: 0.75rem;
+      --spacing-4: 1rem;
+      --spacing-5: 1.25rem;
+      --spacing-6: 1.5rem;
+      --spacing-7: 1.75rem;
+      --spacing-8: 2rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--col-light-gray);
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    a:not(.btn) {
+      color: var(--col-red);
+      font-weight: 600;
+    }
+
+    a:not(.btn):hover {
+      text-decoration: underline;
+    }
+
+    code {
+      background: rgba(0, 0, 0, 0.05);
+      padding: var(--spacing-1) var(--spacing-2);
+      border-radius: var(--spacing-1);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 600;
+    }
+
+    hr {
+      margin: 0;
+      border: none;
+      height: 1px;
+      background: hsla(0, 0%, 0%, 0.1);
+    }
+
+
+    ol,
+    ul {
+      margin: 0;
+      padding-inline-start: var(--spacing-6);
+    }
+
+    :is(ol, ul)>li> :is(ol, ul) {
+      padding-inline-start: var(--spacing-4);
+    }
+
+    :is(ol, ul)>li {
+      margin-block: var(--spacing-2);
+    }
+
+    :is(ol, ul)>li :is(ol, ul) li {
+      margin-block: var(--spacing-1);
+    }
+
+    .btn {
+      background: var(--col-red);
+      color: var(--col-white);
+      border: none;
+      padding: var(--spacing-2) var(--spacing-4);
+      border-radius: var(--spacing-2);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: var(--transition-base);
+      position: relative;
+    }
+
+    .btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .copy-toast {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+
+      transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+
+      position: absolute;
+      bottom: calc(100% + var(--spacing-3));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+
+
+      background: rgba(0, 0, 0, 0.8);
+      color: var(--col-white);
+
+      padding: var(--spacing-3) var(--spacing-4);
+      border-radius: var(--spacing-2);
+
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+
+    .copy-toast.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .container {
+      padding-top: max(var(--spacing-4), 6dvh);
+      padding-bottom: var(--spacing-4);
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-6);
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: var(--spacing-2);
+    }
+
+    .header img {
+      height: var(--spacing-6);
+    }
+
+    .header h1 {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 2rem;
+      color: var(--col-red);
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--spacing-2);
+      padding: var(--spacing-4);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-inline: var(--spacing-2);
+      /* min-width: 20rem; */
+    }
+
+    .qr-code {
+      width: 100%;
+    }
+
+    .qr-code img {
+      display: block;
+      max-width: min(100dvh, 100dvw, 100%);
+      max-height: min(100dvh, 100dvw);
+      margin-inline: auto;
+    }
+
+    .error {
+      font-size: 0.875rem;
+      color: var(--col-dark-red);
+    }
+
+    .error h2 {
+      margin-top: 0;
+      margin-bottom: var(--spacing-4);
+      font-size: 1.25rem;
+    }
+
+    .info {
+      max-width: 70ch;
+    }
+
+    .spinner {
+      width: min(12rem, 50dvw, 50dvh);
+      height: min(12rem, 50dvw, 50dvh);
+      border: var(--spacing-3) solid #f3f3f3;
+      border-top: var(--spacing-3) solid var(--col-red);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .qr-action-buttons {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-3);
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="/img/coldcard-logo.svg" alt="COLDCARD logo">
+      <h1>Key Teleport</h>
+    </div>
+
+    <div class="card">
+      <div class="spinner"></div>
+
+
+      <div class="info hidden">
+        <p>Key Teleport is a feature designed for
+          <a href="https://store.coinkite.com/store/category/coldcard-q" target="_blank" rel="noopener">
+            COLDCARD Q
+          </a>
+          devices that lets you <strong>securely transfer:</strong>
+        </p>
+
+        <ul>
+          <li>Seed phrases (words, xprv)</li>
+          <li>Secure notes/passwords (singular or all in vault)</li>
+          <li>Partially signed Bitcoin transactions (PSBTs) for multisig</li>
+        </ul>
+
+        <p>
+          It uses QR codes or NFC (with a helper website) for easy, reliable transmission, keeping your sensitive
+          data protected every step of the way.
+        </p>
+
+        <hr>
+
+        <h2>How it works</h2>
+
+        <ol>
+          <li><strong>Supported Transfers</strong>
+            <ul>
+              <li><strong>Master Seeds</strong> (words, xprv)</li>
+              <li><strong>Secure Notes/Passwords</strong> (single or all stored)</li>
+              <li><strong>PSBTs</strong> during a multisig signing process</li>
+            </ul>
+          </li>
+
+          <li><strong>Encryption and Security</strong>
+            <ul>
+              <li><strong>ECDH (Elliptic Curve Diffie-Hellman) for Session Key</strong>:
+                Both devices generate a shared session key using ECDH.
+              </li>
+              <li><strong>AES-256-CTR Encryption</strong>:
+                That session key encrypts the data with AES-256-CTR.
+              <li><strong>Additional Password Layer</strong>:
+                A short password (stretched with PBKDF2-SHA512) adds a second AES-256-CTR layer.</li>
+            </ul>
+          </li>
+
+          <li><strong>Exchange Procedure</strong>
+            <ul>
+              <li><strong>Receiver</strong>: Shows a QR code and a numeric code to the Sender.</li>
+              <li><strong>Sender</strong>: Scans the Receiver's QR, then replies with its own QR code and an 8-character
+                password.
+              </li>
+            </ul>
+          </li>
+
+          <li><strong>Further Details</strong>
+            <ul>
+              <li>For deeper technical insights, see the <a
+                  href="https://github.com/Coldcard/firmware/blob/master/docs/key-teleport.md" target="_blank"
+                  rel="noopener">protocol spec</a>.</li>
+            </ul>
+          </li>
+      </div>
+
+      <div class="qr-code hidden"></div>
+
+      <div class="error hidden">
+        <h2>Invalid data in URL</h2>
+        <p>The part after the <code>#</code> must be valid BBQr-encoded data.</p>
+        <p>Example: <code>B$2S0100&hellip;</code></p>
+      </div>
+    </div>
+
+    <div class="qr-action-buttons hidden">
+      <button class="btn" data-action="copy-url">
+        Copy this URL
+        <div class="copy-toast"></div>
+      </button>
+      <button class="btn" data-action="download-qr">Download QR code</button>
+    </div>
+
+  </div>
+
+  <script src="/js/bbqr.iife.js"
+    integrity="sha384-1XIKW2u135wyLlqhJbaKUK0p0NGr9A+AL2CKIXRc4O9cJr+FBYM64PZ0faHQog2v"></script>
+  <script src="/js/main.js"
+    integrity="sha-384-Yg2f12Ec9X1Na6dEorv2jnaMiiCZ8VVH6QefnPTEpfvECS9Q2qWSWRgnMpLZeWqX"></script>
+</body>
+
+</html>

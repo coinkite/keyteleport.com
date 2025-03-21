@@ -39,12 +39,12 @@
 
     a:not(.btn) {
       color: var(--col-red);
+      font-weight: 600;
     }
 
     a:not(.btn):hover {
       text-decoration: underline;
     }
-
 
     code {
       background: rgba(0, 0, 0, 0.05);
@@ -52,6 +52,32 @@
       border-radius: var(--spacing-1);
       font-family: "Courier New", Courier, monospace;
       font-weight: 600;
+    }
+
+    hr {
+      margin: 0;
+      border: none;
+      height: 1px;
+      background: hsla(0, 0%, 0%, 0.1);
+    }
+
+
+    ol,
+    ul {
+      margin: 0;
+      padding-inline-start: var(--spacing-6);
+    }
+
+    :is(ol, ul)>li> :is(ol, ul) {
+      padding-inline-start: var(--spacing-4);
+    }
+
+    :is(ol, ul)>li {
+      margin-block: var(--spacing-2);
+    }
+
+    :is(ol, ul)>li :is(ol, ul) li {
+      margin-block: var(--spacing-1);
     }
 
     .btn {
@@ -162,7 +188,7 @@
     }
 
     .info {
-      text-align: center;
+      max-width: 70ch;
     }
 
     .spinner {
@@ -208,8 +234,65 @@
 
 
       <div class="info hidden">
-        <p>This website powers the Key Teleport feature on COLDCARD devices.</p>
-        <p style="font-weight: bold; font-size: 1.25rem;"><a class="btn" href="#">Learn more</a></p>
+        <p>Key Teleport is a feature designed for
+          <a href="https://store.coinkite.com/store/category/coldcard-q" target="_blank" rel="noopener">
+            COLDCARD Q
+          </a>
+          devices that lets you <strong>securely transfer:</strong>
+        </p>
+
+        <ul>
+          <li>Seed phrases (words, xprv)</li>
+          <li>Secure notes/passwords (singular or all in vault)</li>
+          <li>Partially signed Bitcoin transactions (PSBTs) for multisig</li>
+        </ul>
+
+        <p>
+          It uses QR codes or NFC (with a helper website) for easy, reliable transmission, keeping your sensitive
+          data protected every step of the way.
+        </p>
+
+        <hr>
+
+        <h2>How it works</h2>
+
+        <ol>
+          <li><strong>Supported Transfers</strong>
+            <ul>
+              <li><strong>Master Seeds</strong> (words, xprv)</li>
+              <li><strong>Secure Notes/Passwords</strong> (single or all stored)</li>
+              <li><strong>PSBTs</strong> during a multisig signing process</li>
+            </ul>
+          </li>
+
+          <li><strong>Encryption and Security</strong>
+            <ul>
+              <li><strong>ECDH (Elliptic Curve Diffie-Hellman) for Session Key</strong>:
+                Both devices generate a shared session key using ECDH.
+              </li>
+              <li><strong>AES-256-CTR Encryption</strong>:
+                That session key encrypts the data with AES-256-CTR.
+              <li><strong>Additional Password Layer</strong>:
+                A short password (stretched with PBKDF2-SHA512) adds a second AES-256-CTR layer.</li>
+            </ul>
+          </li>
+
+          <li><strong>Exchange Procedure</strong>
+            <ul>
+              <li><strong>Receiver</strong>: Shows a QR code and a numeric code to the Sender.</li>
+              <li><strong>Sender</strong>: Scans the Receiver's QR, then replies with its own QR code and an 8-character
+                password.
+              </li>
+            </ul>
+          </li>
+
+          <li><strong>Further Details</strong>
+            <ul>
+              <li>For deeper technical insights, see the <a
+                  href="https://github.com/Coldcard/firmware/blob/master/docs/key-teleport.md" target="_blank"
+                  rel="noopener">protocol spec</a>.</li>
+            </ul>
+          </li>
       </div>
 
       <div class="qr-code hidden"></div>

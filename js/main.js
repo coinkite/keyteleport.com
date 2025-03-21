@@ -111,7 +111,23 @@
     const url = imgEl.src;
     const a = document.createElement('a');
     a.href = url;
-    a.download = imgEl.getAttribute('data-data') || 'qr-code.png';
+
+    // make the filename KT_<type>_<16 random hex bytes>.png
+    let filename = 'KT_';
+
+    const data = imgEl.getAttribute('data-data');
+
+    if (data && data.length >= 4) {
+      filename += data[3] + '_';
+    }
+
+    filename += Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    filename += '.png';
+
+    a.download = filename;
     a.click();
     a.remove();
   }

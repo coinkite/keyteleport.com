@@ -86,14 +86,22 @@
       border: none;
       padding: var(--spacing-2) var(--spacing-4);
       border-radius: var(--spacing-2);
-      cursor: pointer;
       font-weight: 600;
       font-size: 0.875rem;
       transition: var(--transition-base);
       position: relative;
     }
 
-    .btn:hover {
+    .btn:disabled {
+      opacity: 0.5;
+      filter: grayscale(1);
+    }
+
+    .btn:not(:disabled) {
+      cursor: pointer;
+    }
+
+    .btn:not(:disabled):hover {
       filter: brightness(1.1);
     }
 
@@ -217,7 +225,40 @@
     }
 
     .hidden {
-      display: none;
+      display: none !important;
+    }
+
+    .btn-small {
+      padding: var(--spacing-2);
+      font-size: 0.75rem;
+    }
+
+    .btn-small[aria-selected="true"] {
+      background: var(--col-dark-red);
+    }
+
+    .count-controls {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-3);
+    }
+
+    .count-controls label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1;
+    }
+
+    .count-controls-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--spacing-2);
+    }
+
+    .count-controls-grid :is([data-action="no-animation"]) {
+      grid-column: span 2;
     }
   </style>
 </head>
@@ -305,6 +346,22 @@
     </div>
 
     <div class="qr-action-buttons hidden">
+
+
+
+      <div class="count-controls">
+
+        <label>Number of QRs</label>
+        <div class="count-controls-grid">
+          <button class="btn" data-action="less-frames">Less</button>
+          <button class="btn" data-action="more-frames">More</button>
+          <button class="btn" data-action="no-animation">No animation</button>
+        </div>
+
+        <hr>
+
+      </div>
+
       <button class="btn" data-action="copy-url">
         Copy this URL
         <div class="copy-toast"></div>
@@ -314,10 +371,8 @@
 
   </div>
 
-  <script src="/js/bbqr.iife.js"
-    integrity="sha384-1XIKW2u135wyLlqhJbaKUK0p0NGr9A+AL2CKIXRc4O9cJr+FBYM64PZ0faHQog2v"></script>
-  <script src="/js/main.js"
-    integrity="sha-384-Yg2f12Ec9X1Na6dEorv2jnaMiiCZ8VVH6QefnPTEpfvECS9Q2qWSWRgnMpLZeWqX"></script>
+  <script src="/js/bbqr.iife.js" integrity="sha384-1XIKW2u135wyLlqhJbaKUK0p0NGr9A+AL2CKIXRc4O9cJr+FBYM64PZ0faHQog2v"></script>
+  <script src="/js/main.js" integrity="sha384-flVUWrZdvLe3ZLxhrEDFsBuNd8OBbckLIqXv/914aDKNUQ/iL859I3VaKUbldGMW"></script>
 </body>
 
 </html>

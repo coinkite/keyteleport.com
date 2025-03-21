@@ -25,6 +25,7 @@
   const errorEl = mustExist(document.querySelector('.error'));
   const qrCodeEl = mustExist(document.querySelector('.qr-code'));
   const qrActionButtonsEl = mustExist(document.querySelector('.qr-action-buttons'));
+  const copyToastEl = mustExist(document.querySelector('.copy-toast'));
 
   const DATA_REGEX = /^B\$[2Z][SRE][0-9A-Z]{2}[0-9A-Z]{2}[2-7A-Z]+$/;
 
@@ -163,12 +164,22 @@
 
   document.querySelectorAll('[data-action]').forEach((el) => {
     el.addEventListener('click', (e) => {
-      console.log('clicked', el);
       const action = el.getAttribute('data-action');
       if (action === 'copy-url') {
-        navigator.clipboard.writeText(window.location.href).catch((err) => {
-          console.error('Failed to copy:', err);
-        });
+        navigator.clipboard
+          .writeText(window.location.href)
+          .then(() => {
+            copyToastEl.innerHTML = 'URL copied to clipboard!';
+          })
+          .catch((err) => {
+            copyToastEl.innerHTML = 'Failed to copy URL';
+          })
+          .finally(() => {
+            copyToastEl.classList.add('show');
+            setTimeout(() => {
+              copyToastEl.classList.remove('show');
+            }, 1500);
+          });
       } else if (action === 'download-qr') {
         downloadQR();
       }

@@ -64,10 +64,40 @@
       font-weight: 600;
       font-size: 0.875rem;
       transition: var(--transition-base);
+      position: relative;
     }
 
     .btn:hover {
       filter: brightness(1.1);
+    }
+
+    .copy-toast {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+
+      transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+
+      position: absolute;
+      bottom: calc(100% + var(--spacing-3));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+
+
+      background: rgba(0, 0, 0, 0.8);
+      color: var(--col-white);
+
+      padding: var(--spacing-3) var(--spacing-4);
+      border-radius: var(--spacing-2);
+
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+
+    .copy-toast.show {
+      opacity: 1;
+      visibility: visible;
     }
 
     .container {
@@ -101,7 +131,7 @@
     }
 
     .card {
-      background: var(--col-white);
+      background: white;
       border-radius: var(--spacing-2);
       padding: var(--spacing-4);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -160,12 +190,10 @@
       }
     }
 
-    /* utilities */
     .hidden {
       display: none;
     }
   </style>
-
 </head>
 
 <body>
@@ -194,14 +222,18 @@
     </div>
 
     <div class="qr-action-buttons hidden">
-      <button class="btn" data-action="copy-url">Copy this URL</button>
+      <button class="btn" data-action="copy-url">
+        Copy this URL
+        <div class="copy-toast"></div>
+      </button>
       <button class="btn" data-action="download-qr">Download QR code</button>
     </div>
 
   </div>
 
-  <script src="/js/bbqr.iife.js" integrity="sha384-1XIKW2u135wyLlqhJbaKUK0p0NGr9A+AL2CKIXRc4O9cJr+FBYM64PZ0faHQog2v"></script>
-  <script src="/js/main.js" integrity="sha384-QK1KCcUefE9dquNqrqe+WULL9ayBZ+5X7XCkTMiLiFzJr28zNdRgShDyT0d3PMPl"></script>
+  <script src="/js/bbqr.iife.js"
+    integrity="sha384-1XIKW2u135wyLlqhJbaKUK0p0NGr9A+AL2CKIXRc4O9cJr+FBYM64PZ0faHQog2v"></script>
+  <script src="/js/main.js"></script>
 </body>
 
 </html>

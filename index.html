@@ -90,11 +90,11 @@
       font-size: 0.875rem;
       transition: var(--transition-base);
       position: relative;
+      border: 1px solid transparent;
     }
 
     .btn:disabled {
-      opacity: 0.5;
-      filter: grayscale(1);
+      opacity: 0.25;
     }
 
     .btn:not(:disabled) {
@@ -103,6 +103,12 @@
 
     .btn:not(:disabled):hover {
       filter: brightness(1.1);
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--col-red);
+      border: 1px solid var(--col-red);
     }
 
     .copy-toast {
@@ -138,6 +144,7 @@
       padding-top: max(var(--spacing-4), 6dvh);
       padding-bottom: var(--spacing-4);
       margin-inline: auto;
+      max-width: calc(100vw - var(--spacing-4));
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -165,22 +172,45 @@
     }
 
     .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       background: white;
       border-radius: var(--spacing-2);
       padding: var(--spacing-4);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       margin-inline: var(--spacing-2);
-      /* min-width: 20rem; */
+      max-height: 80dvh;
+      max-width: 80dvh;
+      overflow: hidden;
+      transition: padding 0.3s ease-out;
+    }
+
+    .card:has(.qr-code:not(.hidden)) {
+      padding: 0;
+      aspect-ratio: 1;
+      width: min(40rem, calc(100vw - var(--spacing-6)));
+    }
+
+    .multi-qr .card:has(.qr-code:not(.hidden)) {
+      padding-bottom: var(--spacing-4);
+      aspect-ratio: 0.94;
     }
 
     .qr-code {
       width: 100%;
+      transition-behavior: allow-discrete;
+      transition-property: opacity, display;
+      transition-duration: 0.3s;
+      transition-timing-function: ease-out;
+      opacity: 1;
     }
 
     .qr-code img {
       display: block;
       max-width: min(100dvh, 100dvw, 100%);
-      max-height: min(100dvh, 100dvw);
       margin-inline: auto;
     }
 
@@ -202,16 +232,28 @@
     .spinner {
       width: min(12rem, 50dvw, 50dvh);
       height: min(12rem, 50dvw, 50dvh);
+      margin-inline: auto;
       border: var(--spacing-3) solid #f3f3f3;
       border-top: var(--spacing-3) solid var(--col-red);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
 
+    .spinner.absolute {
+      position: absolute;
+      inset: 0;
+      margin: auto;
+    }
+
     .qr-action-buttons {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--spacing-3);
+      column-gap: var(--spacing-8);
+      row-gap: var(--spacing-4);
+      grid-template-columns: minmax(10.5rem, 1fr);
+    }
+
+    body:not(.small-qr) .qr-action-buttons {
+      grid-template-columns: repeat(2, minmax(10.5rem, 1fr));
     }
 
     @keyframes spin {
@@ -226,39 +268,43 @@
 
     .hidden {
       display: none !important;
+      opacity: 0;
     }
 
-    .btn-small {
-      padding: var(--spacing-2);
-      font-size: 0.75rem;
+    .invisible {
+      visibility: hidden !important;
+      opacity: 0;
     }
 
-    .btn-small[aria-selected="true"] {
-      background: var(--col-dark-red);
+    .small-qr .count-controls {
+      display: none;
     }
 
-    .count-controls {
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-3);
-    }
 
-    .count-controls label {
+    .qr-action-buttons label {
       display: block;
       font-size: 0.875rem;
       font-weight: 600;
       text-align: center;
       line-height: 1;
+      margin-bottom: var(--spacing-2);
     }
 
-    .count-controls-grid {
+    .buttons-group {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--spacing-2);
     }
 
-    .count-controls-grid :is([data-action="no-animation"]) {
-      grid-column: span 2;
+    .multi-qr .btn.download {
+      display: none;
+    }
+
+    body:not(.multi-qr) .btn.download {
+      display: block;
+    }
+
+    body:not(.multi-qr) :is(.btn.download-animated, .btn.download-stacked) {
+      display: none;
     }
   </style>
 </head>
@@ -352,27 +398,35 @@
       <div class="count-controls">
 
         <label>Number of QRs</label>
-        <div class="count-controls-grid">
-          <button class="btn" data-action="less-frames">Less</button>
+        <div class="buttons-group">
           <button class="btn" data-action="more-frames">More</button>
+          <button class="btn" data-action="less-frames">Less</button>
           <button class="btn" data-action="no-animation">No animation</button>
         </div>
 
-        <hr>
-
       </div>
 
-      <button class="btn" data-action="copy-url">
-        Copy this URL
-        <div class="copy-toast"></div>
-      </button>
-      <button class="btn" data-action="download-qr">Download QR code</button>
+      <div>
+        <label>Actions</label>
+        <div class="buttons-group">
+
+          <button class="btn btn-secondary" data-action="copy-url">
+            Copy URL
+            <div class="copy-toast"></div>
+          </button>
+          <button class="btn btn-secondary download" data-action="download-qr">Download</button>
+          <button class="btn btn-secondary download-animated" data-action="download-qr">Download animated</button>
+          <button class="btn btn-secondary download-stacked" data-action="download-qr-stacked">Download stacked</button>
+        </div>
+      </div>
     </div>
 
   </div>
 
-  <script src="/js/bbqr.iife.js" integrity="sha384-1XIKW2u135wyLlqhJbaKUK0p0NGr9A+AL2CKIXRc4O9cJr+FBYM64PZ0faHQog2v"></script>
-  <script src="/js/main.js" integrity="sha384-flVUWrZdvLe3ZLxhrEDFsBuNd8OBbckLIqXv/914aDKNUQ/iL859I3VaKUbldGMW"></script>
+  <script src="/js/bbqr.iife.js"
+    integrity="sha384-Zsl+dwS0R4lcqmpMxikaqoSvIdMuuxXMwD9ogUJ2iCxUHuqYqMjelvrM6R62HxoQ"></script>
+  <script src="/js/main.js"
+    integrity="sha384-jqcaTBT6NrnbRAlHBH4gpD5y+I4mNvkSdbHN9RYr66eX+I+6Ss9C+jPemzJTe8+8"></script>
 </body>
 
 </html>

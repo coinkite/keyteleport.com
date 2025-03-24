@@ -30,9 +30,6 @@
   const qrActionButtonsEl = mustExist(document.querySelector('.qr-action-buttons'));
   const copyToastEl = mustExist(document.querySelector('.copy-toast'));
   const countControlsEl = mustExist(document.querySelector('.count-controls'));
-  // const countInputEl = /** @type {HTMLInputElement} */ (
-  //   mustExist(document.querySelector('.qr-count-input'))
-  // );
 
   const DATA_REGEX = /^B\$[2Z][SRE][0-9A-Z]{2}[0-9A-Z]{2}[2-7A-Z]+$/;
 
@@ -44,11 +41,11 @@
      * @param {PageState} newState
      */
     async function setState(newState) {
-      const currentImg = qrCodeEl.querySelector('img');
-      if (currentImg) {
-        URL.revokeObjectURL(currentImg.src);
-        currentImg.remove();
-      }
+      // qrCodeEl.querySelectorAll('img').forEach((img) => {
+      //   URL.revokeObjectURL(img.src);
+      //   img.remove();
+      // });
+
       switch (newState.status) {
         case 'loading':
           spinnerEl.classList.remove('hidden');
@@ -72,26 +69,37 @@
           qrActionButtonsEl.classList.add('hidden');
           break;
         case 'loaded':
-          const imgBuf = await BBQr.renderQRImage(
-            newState.qrInfo.qrParts,
-            newState.qrInfo.qrVersion,
-            {
-              renderOptions: {
-                scale: 8,
-              },
-            }
+          spinnerEl.classList.remove('hidden');
+          spinnerEl.classList.add('absolute');
+
+          qrCodeEl.classList.add('invisible');
+
+          const [animatedImgBuf, stackedImgBuf] = await Promise.all([
+            BBQr.renderQRImage(newState.qrInfo.qrParts, newState.qrInfo.qrVersion, {
+              renderOptions: { scale: 16 },
+            }),
+            BBQr.renderQRImage(newState.qrInfo.qrParts, newState.qrInfo.qrVersion, {
+              mode: 'stacked',
+              renderOptions: { scale: 8 },
+            }),
+          ]);
+
+          const animatedImgUrl = URL.createObjectURL(
+            new Blob([animatedImgBuf], { type: 'image/png' })
+          );
+          const stackedImgUrl = URL.createObjectURL(
+            new Blob([stackedImgBuf], { type: 'image/png' })
           );
 
-          const imgUrl = URL.createObjectURL(new Blob([imgBuf], { type: 'image/png' }));
-
           spinnerEl.classList.add('hidden');
+          spinnerEl.classList.remove('absolute');
           infoEl.classList.add('hidden');
           errorEl.classList.add('hidden');
 
           if (newState.qrInfo.rawBytes.length < 200) {
-            countControlsEl.classList.add('hidden');
+            document.body.classList.add('small-qr');
           } else {
-            countControlsEl.classList.remove('hidden');
+            document.body.classList.remove('small-qr');
           }
 
           if (newState.qrInfo.qrParts.length === 1) {
@@ -116,9 +124,20 @@
               ?.removeAttribute('disabled');
           }
 
-          qrCodeEl.classList.remove('hidden');
           qrActionButtonsEl.classList.remove('hidden');
-          qrCodeEl.innerHTML = `<img src="${imgUrl}" alt="BBQr code">`;
+          qrCodeEl.innerHTML = `
+          <img src="${animatedImgUrl}" alt="BBQr code" data-mode="animated">
+          <img src="${stackedImgUrl}" alt="BBQr stacked code" data-mode="stacked" style="display: none;">
+          `;
+
+          qrCodeEl.classList.remove('hidden');
+          qrCodeEl.classList.remove('invisible');
+
+          if (newState.qrInfo.qrParts.length > 1) {
+            document.body.classList.add('multi-qr');
+          } else {
+            document.body.classList.remove('multi-qr');
+          }
 
           break;
         default:
@@ -126,7 +145,6 @@
           const _exhaustiveCheck = newState;
       }
       _state = newState;
-      console.debug('setState', newState);
     }
 
     return {
@@ -135,7 +153,7 @@
     };
   })();
 
-  async function downloadQR() {
+  async function downloadQR(stacked = false) {
     const state = getState();
 
     if (state.status !== 'loaded') {
@@ -143,7 +161,10 @@
       return;
     }
 
-    const imgEl = qrCodeEl.querySelector('img');
+    const imgEl = stacked
+      ? qrCodeEl.querySelector('img[data-mode="stacked"]')
+      : qrCodeEl.querySelector('img[data-mode="animated"]');
+
     if (!imgEl) return;
     const url = imgEl.src;
     const a = document.createElement('a');
@@ -159,7 +180,11 @@
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
 
-    filename += `_${state.qrInfo.qrParts.length}x`;
+    if (state.qrInfo.qrParts.length > 1) {
+      filename += `_${state.qrInfo.qrParts.length}x`;
+
+      filename += stacked ? '_stacked' : '_animated';
+    }
 
     filename += '.png';
 
@@ -196,12 +221,16 @@
     });
 
     // "join" back to raw bytes, so we can adjust number of QRs etc.
-    const { raw } = BBQr.joinQRs([data]);
+    try {
+      const { raw } = BBQr.joinQRs([data]);
 
-    setState({
-      status: 'loaded',
-      qrInfo: { qrParts: [data], rawBytes: raw, encoding, fileType, qrVersion: version },
-    });
+      setState({
+        status: 'loaded',
+        qrInfo: { qrParts: [data], rawBytes: raw, encoding, fileType, qrVersion: version },
+      });
+    } catch (err) {
+      setState({ status: 'invalid-hash' });
+    }
   }
 
   /**
@@ -211,7 +240,7 @@
     const state = getState();
 
     if (state.status !== 'loaded') {
-      console.warn('increaseQRCount called but state is not loaded');
+      console.warn('adjustQRCount called but state is not loaded');
       return;
     }
 
@@ -235,7 +264,7 @@
 
     let newCount = currentCount;
 
-    while (newCount > 0 && newCount <= 1295) {
+    while (newCount > 0 && newCount < 1295) {
       newCount += action === 'up' ? 1 : -1;
       try {
         const { parts, version } = BBQr.splitQRs(state.qrInfo.rawBytes, state.qrInfo.fileType, {
@@ -255,20 +284,15 @@
         console.debug(`adjustQRCount: cannot split into ${newCount} parts, skipping`);
       }
     }
+
+    if (newCount >= 1295) {
+      document.querySelector('[data-action="more-frames"]')?.setAttribute('disabled', '');
+    }
   }
 
   loadDataFromUrl();
 
   window.addEventListener('hashchange', loadDataFromUrl);
-
-  // countInputEl.addEventListener('change', (e) => {
-  //   const count = parseInt(countInputEl.value);
-  //   if (isNaN(count)) {
-  //     console.warn('setQRCount called with invalid count', count);
-  //     return;
-  //   }
-  //   setQRCount(count);
-  // });
 
   document.querySelectorAll('[data-action]').forEach((el) => {
     el.addEventListener('click', (e) => {
@@ -290,6 +314,8 @@
           });
       } else if (action === 'download-qr') {
         downloadQR();
+      } else if (action === 'download-qr-stacked') {
+        downloadQR(true);
       } else if (action === 'more-frames') {
         adjustQRCount('up');
       } else if (action === 'less-frames') {

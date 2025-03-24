@@ -180,7 +180,11 @@
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
 
-    filename += `_${state.qrInfo.qrParts.length}x`;
+    if (state.qrInfo.qrParts.length > 1) {
+      filename += `_${state.qrInfo.qrParts.length}x`;
+
+      filename += stacked ? '_stacked' : '_animated';
+    }
 
     filename += '.png';
 

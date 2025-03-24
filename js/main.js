@@ -217,12 +217,16 @@
     });
 
     // "join" back to raw bytes, so we can adjust number of QRs etc.
-    const { raw } = BBQr.joinQRs([data]);
+    try {
+      const { raw } = BBQr.joinQRs([data]);
 
-    setState({
-      status: 'loaded',
-      qrInfo: { qrParts: [data], rawBytes: raw, encoding, fileType, qrVersion: version },
-    });
+      setState({
+        status: 'loaded',
+        qrInfo: { qrParts: [data], rawBytes: raw, encoding, fileType, qrVersion: version },
+      });
+    } catch (err) {
+      setState({ status: 'invalid-hash' });
+    }
   }
 
   /**

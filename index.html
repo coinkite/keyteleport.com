@@ -141,14 +141,15 @@
     }
 
     .container {
-      padding-top: max(var(--spacing-4), 6dvh);
-      padding-bottom: var(--spacing-4);
+      padding-top: max(var(--spacing-4), 4dvh);
+      padding-bottom: max(var(--spacing-4), 4dvh);
       margin-inline: auto;
       max-width: calc(100vw - var(--spacing-4));
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: var(--spacing-6);
+      width: 100%;
     }
 
     .header {
@@ -169,6 +170,7 @@
       color: var(--col-red);
       font-weight: bold;
       margin: 0;
+      text-align: center;
     }
 
     .card {
@@ -182,16 +184,17 @@
       padding: var(--spacing-4);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       margin-inline: var(--spacing-2);
-      max-height: 80dvh;
-      max-width: 80dvh;
-      overflow: hidden;
+      margin-bottom: var(--spacing-4);
+      max-width: min(80dvh, 90vw);
+      width: 100%;
       transition: padding 0.3s ease-out;
     }
 
     .card:has(.qr-code:not(.hidden)) {
       padding: 0;
       aspect-ratio: 1;
-      width: min(40rem, calc(100vw - var(--spacing-6)));
+      width: min(40rem, 90vw);
+      height: auto;
     }
 
     .multi-qr .card:has(.qr-code:not(.hidden)) {
@@ -210,7 +213,9 @@
 
     .qr-code img {
       display: block;
-      max-width: min(100dvh, 100dvw, 100%);
+      max-width: 100%;
+      width: 100%;
+      height: auto;
       margin-inline: auto;
     }
 
@@ -227,6 +232,9 @@
 
     .info {
       max-width: 70ch;
+      width: 100%;
+      padding: var(--spacing-2);
+      margin-bottom: var(--spacing-2);
     }
 
     .spinner {
@@ -250,10 +258,32 @@
       column-gap: var(--spacing-8);
       row-gap: var(--spacing-4);
       grid-template-columns: minmax(10.5rem, 1fr);
+      width: 100%;
+      max-width: min(40rem, 90vw);
+      padding-inline: var(--spacing-2);
     }
 
     body:not(.small-qr) .qr-action-buttons {
-      grid-template-columns: repeat(2, minmax(10.5rem, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+    }
+
+    @media (max-width: 640px) {
+      .qr-action-buttons {
+        grid-template-columns: 1fr !important;
+      }
+
+      .header h1 {
+        font-size: 1.75rem;
+      }
+
+      .card {
+        padding: var(--spacing-3);
+        margin-bottom: var(--spacing-3);
+      }
+      
+      .container {
+        gap: var(--spacing-4);
+      }
     }
 
     @keyframes spin {
@@ -293,6 +323,13 @@
     .buttons-group {
       display: grid;
       gap: var(--spacing-2);
+      grid-template-columns: repeat(auto-fit, minmax(min(8rem, 100%), 1fr));
+    }
+
+    @media (max-width: 400px) {
+      .buttons-group {
+        grid-template-columns: 1fr;
+      }
     }
 
     .multi-qr .btn.download {
@@ -306,6 +343,11 @@
     body:not(.multi-qr) :is(.btn.download-animated, .btn.download-stacked) {
       display: none;
     }
+
+    h2 {
+      margin-top: var(--spacing-6);
+      margin-bottom: var(--spacing-4);
+    }
   </style>
 </head>
 
@@ -313,7 +355,7 @@
   <div class="container">
     <div class="header">
       <img src="/img/coldcard-logo.svg" alt="COLDCARD logo">
-      <h1>Key Teleport</h>
+      <h1>Key Teleport</h1>
     </div>
 
     <div class="card">
@@ -380,6 +422,7 @@
                   rel="noopener">protocol spec</a>.</li>
             </ul>
           </li>
+        </ol>
       </div>
 
       <div class="qr-code hidden"></div>

@@ -69,6 +69,8 @@
           qrActionButtonsEl.classList.add('hidden');
           break;
         case 'loaded':
+          infoEl.classList.add('hidden');
+          errorEl.classList.add('hidden');
           spinnerEl.classList.remove('hidden');
           spinnerEl.classList.add('absolute');
 
@@ -76,11 +78,13 @@
 
           const [animatedImgBuf, stackedImgBuf] = await Promise.all([
             BBQr.renderQRImage(newState.qrInfo.qrParts, newState.qrInfo.qrVersion, {
-              renderOptions: { scale: 16 },
+              scale: 16,
+              margin: '12.5%',
             }),
             BBQr.renderQRImage(newState.qrInfo.qrParts, newState.qrInfo.qrVersion, {
               mode: 'stacked',
-              renderOptions: { scale: 8 },
+              scale: 16,
+              margin: '12.5%',
             }),
           ]);
 
@@ -93,8 +97,6 @@
 
           spinnerEl.classList.add('hidden');
           spinnerEl.classList.remove('absolute');
-          infoEl.classList.add('hidden');
-          errorEl.classList.add('hidden');
 
           if (newState.qrInfo.rawBytes.length < 200) {
             document.body.classList.add('small-qr');
@@ -165,7 +167,7 @@
       ? qrCodeEl.querySelector('img[data-mode="stacked"]')
       : qrCodeEl.querySelector('img[data-mode="animated"]');
 
-    if (!imgEl) return;
+    if (!(imgEl instanceof HTMLImageElement)) return;
     const url = imgEl.src;
     const a = document.createElement('a');
     a.href = url;
@@ -212,23 +214,25 @@
     const encoding = /** @type {('2' | 'Z')} */ (header[2]);
     const fileType = /** @type {('S' | 'R' | 'E')} */ (header[3]);
 
-    const { version } = BBQr.findBestVersion(data.slice(8).length, 8, {
-      encoding,
-      minSplit: 1,
-      maxSplit: 1,
-      minVersion: 1,
-      maxVersion: 40,
-    });
-
-    // "join" back to raw bytes, so we can adjust number of QRs etc.
     try {
+      // "join" back to raw bytes, so we can adjust number of QRs etc.
+      // - also helps ensure the base32 encoded data itself is valid
       const { raw } = BBQr.joinQRs([data]);
+
+      const { parts, version } = BBQr.splitQRs(raw, fileType, {
+        encoding,
+        minSplit: 1,
+        maxSplit: 1,
+        minVersion: 1,
+        maxVersion: 40,
+      });
 
       setState({
         status: 'loaded',
-        qrInfo: { qrParts: [data], rawBytes: raw, encoding, fileType, qrVersion: version },
+        qrInfo: { qrParts: parts, rawBytes: raw, encoding, fileType, qrVersion: version },
       });
     } catch (err) {
+      console.error(err);
       setState({ status: 'invalid-hash' });
     }
   }

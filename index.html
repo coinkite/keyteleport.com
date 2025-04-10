@@ -22,6 +22,21 @@
       --spacing-6: 1.5rem;
       --spacing-7: 1.75rem;
       --spacing-8: 2rem;
+
+      --qr-max-width: 100%;
+    }
+
+
+    @media (min-width: 480px) {
+
+      /**
+       * trying not to exceed 2 inches of physical size on desktop:
+       * - easier for Q's camera to read
+       * - this is approximate, will vary with display density
+       */
+      :root {
+        --qr-max-width: 290px;
+      }
     }
 
     * {
@@ -142,13 +157,13 @@
 
     .container {
       padding-top: max(var(--spacing-4), 4dvh);
-      padding-bottom: max(var(--spacing-4), 4dvh);
+      padding-bottom: var(--spacing-4);
       margin-inline: auto;
       max-width: calc(100vw - var(--spacing-4));
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: var(--spacing-6);
+      gap: var(--spacing-8);
       width: 100%;
     }
 
@@ -181,20 +196,24 @@
       justify-content: center;
       background: white;
       border-radius: var(--spacing-2);
+      overflow: hidden;
       padding: var(--spacing-4);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       margin-inline: var(--spacing-2);
-      margin-bottom: var(--spacing-4);
-      max-width: min(80dvh, 90vw);
-      width: 100%;
       transition: padding 0.3s ease-out;
+    }
+
+    .card:has(.spinner:not(.hidden)) {
+      width: 100%;
+      max-width: var(--qr-max-width);
+      aspect-ratio: 1;
     }
 
     .card:has(.qr-code:not(.hidden)) {
       padding: 0;
       aspect-ratio: 1;
-      width: min(40rem, 90vw);
-      height: auto;
+      width: 100%;
+      max-width: min(80dvh, 100%, var(--qr-max-width));
     }
 
     .multi-qr .card:has(.qr-code:not(.hidden)) {
@@ -213,9 +232,7 @@
 
     .qr-code img {
       display: block;
-      max-width: 100%;
       width: 100%;
-      height: auto;
       margin-inline: auto;
     }
 
@@ -258,9 +275,8 @@
       column-gap: var(--spacing-8);
       row-gap: var(--spacing-4);
       grid-template-columns: minmax(10.5rem, 1fr);
-      width: 100%;
-      max-width: min(40rem, 90vw);
-      padding-inline: var(--spacing-2);
+      width: max-content;
+      max-width: min(40rem, 100%);
     }
 
     body:not(.small-qr) .qr-action-buttons {
@@ -268,21 +284,16 @@
     }
 
     @media (max-width: 640px) {
-      .qr-action-buttons {
-        grid-template-columns: 1fr !important;
-      }
-
       .header h1 {
         font-size: 1.75rem;
       }
 
       .card {
         padding: var(--spacing-3);
-        margin-bottom: var(--spacing-3);
       }
-      
+
       .container {
-        gap: var(--spacing-4);
+        gap: var(--spacing-5);
       }
     }
 
@@ -323,13 +334,6 @@
     .buttons-group {
       display: grid;
       gap: var(--spacing-2);
-      grid-template-columns: repeat(auto-fit, minmax(min(8rem, 100%), 1fr));
-    }
-
-    @media (max-width: 400px) {
-      .buttons-group {
-        grid-template-columns: 1fr;
-      }
     }
 
     .multi-qr .btn.download {

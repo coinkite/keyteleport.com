@@ -2,7 +2,7 @@
 /// <reference path="bbqr.d.ts" />
 
 (async function () {
-  /** @typedef {{qrParts: string[]; rawBytes: Uint8Array; encoding: '2' | 'Z'; fileType: 'S' | 'R' | 'E'; qrVersion: number}} QRInfo */
+  /** @typedef {{qrParts: string[]; rawBytes: Uint8Array; encoding: '2' | 'Z'; fileType: 'S' | 'R' | 'E'; qrVersion: number; minCount: number;}} QRInfo */
 
   /** @typedef {{ status: 'loading' }}  LoadingState */
   /** @typedef {{ status: 'invalid-hash' }} InvalidHashState */
@@ -41,11 +41,6 @@
      * @param {PageState} newState
      */
     async function setState(newState) {
-      // qrCodeEl.querySelectorAll('img').forEach((img) => {
-      //   URL.revokeObjectURL(img.src);
-      //   img.remove();
-      // });
-
       switch (newState.status) {
         case 'loading':
           spinnerEl.classList.remove('hidden');
@@ -104,25 +99,26 @@
             document.body.classList.remove('small-qr');
           }
 
-          if (newState.qrInfo.qrParts.length === 1) {
+          const newCount = newState.qrInfo.qrParts.length;
+          const minCount = newState.qrInfo.minCount;
+
+          if (newCount === minCount || minCount > 1) {
             countControlsEl
               .querySelector('[data-action="no-animation"]')
               ?.setAttribute('disabled', '');
-            countControlsEl
-              .querySelector('[data-action="less-frames"]')
-              ?.setAttribute('disabled', '');
-            countControlsEl
-              .querySelector('[data-action="more-frames"]')
-              ?.removeAttribute('disabled');
           } else {
             countControlsEl
               .querySelector('[data-action="no-animation"]')
               ?.removeAttribute('disabled');
+          }
+
+          if (newCount === minCount) {
             countControlsEl
               .querySelector('[data-action="less-frames"]')
-              ?.removeAttribute('disabled');
+              ?.setAttribute('disabled', '');
+          } else {
             countControlsEl
-              .querySelector('[data-action="more-frames"]')
+              .querySelector('[data-action="less-frames"]')
               ?.removeAttribute('disabled');
           }
 
@@ -219,17 +215,26 @@
       // - also helps ensure the base32 encoded data itself is valid
       const { raw } = BBQr.joinQRs([data]);
 
+      // - render as few QRs as possible initially
+      // - might need more than one if data is large
       const { parts, version } = BBQr.splitQRs(raw, fileType, {
         encoding,
         minSplit: 1,
-        maxSplit: 1,
+        maxSplit: 1295,
         minVersion: 1,
         maxVersion: 40,
       });
 
       setState({
         status: 'loaded',
-        qrInfo: { qrParts: parts, rawBytes: raw, encoding, fileType, qrVersion: version },
+        qrInfo: {
+          qrParts: parts,
+          rawBytes: raw,
+          encoding,
+          fileType,
+          qrVersion: version,
+          minCount: parts.length,
+        },
       });
     } catch (err) {
       console.error(err);
@@ -248,49 +253,58 @@
       return;
     }
 
-    if (action === 'single') {
-      const { parts, version } = BBQr.splitQRs(state.qrInfo.rawBytes, state.qrInfo.fileType, {
-        encoding: state.qrInfo.encoding,
-        minSplit: 1,
-        maxSplit: 1,
+    const currentCount = state.qrInfo.qrParts.length;
+
+    /**
+     * @param {LoadedState} curState
+     * @param {number} newMin
+     * @param {number} newMax
+     */
+    function _adjust(curState, newMin, newMax) {
+      const { parts, version } = BBQr.splitQRs(curState.qrInfo.rawBytes, curState.qrInfo.fileType, {
+        encoding: curState.qrInfo.encoding,
+        minSplit: newMin,
+        maxSplit: newMax,
         minVersion: 1,
         maxVersion: 40,
       });
 
       setState({
         status: 'loaded',
-        qrInfo: { ...state.qrInfo, qrParts: parts, qrVersion: version },
+        qrInfo: { ...curState.qrInfo, qrParts: parts, qrVersion: version },
       });
-      return;
     }
 
-    const currentCount = state.qrInfo.qrParts.length;
-
-    let newCount = currentCount;
-
-    while (newCount > 0 && newCount < 1295) {
-      newCount += action === 'up' ? 1 : -1;
-      try {
-        const { parts, version } = BBQr.splitQRs(state.qrInfo.rawBytes, state.qrInfo.fileType, {
-          encoding: state.qrInfo.encoding,
-          minSplit: newCount,
-          maxSplit: newCount,
-          minVersion: 1,
-          maxVersion: 40,
-        });
-
-        setState({
-          status: 'loaded',
-          qrInfo: { ...state.qrInfo, qrParts: parts, qrVersion: version },
-        });
+    if (action === 'single') {
+      if (state.qrInfo.minCount > 1) {
+        console.error('adjustQRCount: tried to set single QR but minCount > 1');
         return;
-      } catch (err) {
-        console.debug(`adjustQRCount: cannot split into ${newCount} parts, skipping`);
       }
-    }
+      _adjust(state, 1, 1);
+    } else if (action === 'up') {
+      try {
+        _adjust(state, currentCount + 1, 1295);
+      } catch (err) {
+        console.warn(
+          `adjustQRCount: tried to increase QR count but already at max: ${currentCount}.`
+        );
+        document.querySelector('[data-action="more-frames"]')?.setAttribute('disabled', '');
+      }
+    } else if (action === 'down') {
+      let newCount = currentCount - 1;
 
-    if (newCount >= 1295) {
-      document.querySelector('[data-action="more-frames"]')?.setAttribute('disabled', '');
+      while (newCount >= state.qrInfo.minCount) {
+        try {
+          _adjust(state, newCount, newCount);
+          return;
+        } catch (err) {
+          newCount--;
+        }
+      }
+
+      console.error(
+        `adjustQRCount: tried to decrease QR count but already at min: ${state.qrInfo.minCount}`
+      );
     }
   }
 
